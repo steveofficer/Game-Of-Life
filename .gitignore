@@ -1,0 +1,5 @@
+GameOfLife/bin/
+GameOfLife/obj/
+Gui/bin/
+Gui/obj/
+*.suo
