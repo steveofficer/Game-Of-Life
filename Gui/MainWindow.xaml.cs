@@ -13,6 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Collections.ObjectModel;
 using System.Timers;
+using System.Windows.Threading;
 
 namespace Gui
 {
@@ -21,91 +22,39 @@ namespace Gui
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Timer m_timer = new Timer();
+        private DispatcherTimer m_timer = new DispatcherTimer();
         private int m_gen_counter = 0;
 
-        public MainWindow()
-        {
+        public MainWindow() {
             InitializeComponent();
             DataContext = this;
-            Population = Acorn();
+            Population = InitialPopulation
+                .Glider()
+                .Select(row => row.Select(cell => new Cell(cell)).ToList())
+                .ToList();
 
-            m_timer.Interval = 100;
-            m_timer.AutoReset = true;
-            m_timer.Elapsed += (s, e) => UpdatePopulation();
-            //m_timer.Start();
+            m_timer.Interval = new TimeSpan(1000000);
+            m_timer.Tick += (s, e) => UpdatePopulation();
+            m_timer.Start();
         }
 
-        private static ObservableCollection<ObservableCollection<bool>> Glider() {
-            return new ObservableCollection<ObservableCollection<bool>> {
-                new ObservableCollection<bool> {false, true, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, true, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {true, true, true, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-            };
-        }
-
-        private static ObservableCollection<ObservableCollection<bool>> Acorn()
-        {
-            return new ObservableCollection<ObservableCollection<bool>> {
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, true, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, true, false, false, false, false, false},
-                new ObservableCollection<bool> {false, true, true, false, false, true, true, true, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-                new ObservableCollection<bool> {false, false, false, false, false, false, false, false, false, false},
-            };
-        }
-
-        private void UpdatePopulation()
-        {
-            var new_population = GameOfLife.Tick(Population);
+        private void UpdatePopulation() {
+            var population = Population.Select(row => row.Select(cell => cell.State));
+            var new_population = GameOfLife.Tick(population);
             m_gen_counter += 1;
-            Dispatcher.Invoke(new Action(() => {
-                Population.Clear();
-                foreach (var row in new_population)
-                {
-                    var new_row = new ObservableCollection<bool>();
-                    foreach (var cell in row)
-                    {
-                        new_row.Add(cell);
+            var all_source_cells = Population.SelectMany(row => row);
+            using (var enumerator = all_source_cells.GetEnumerator()) {
+                enumerator.MoveNext();
+                foreach (var row in new_population) {
+                    foreach (var cell in row) {
+                        enumerator.Current.State = cell;
+                        enumerator.MoveNext();
                     }
-                    Population.Add(new_row);
                 }
-                Generation.Text = m_gen_counter.ToString();
-            }));
+            }
+            Generation.Text = m_gen_counter.ToString();
         }
 
-        public ObservableCollection<ObservableCollection<bool>> Population { get; private set; }
+        public IEnumerable<IList<Cell>> Population { get; private set; }
     }
 }

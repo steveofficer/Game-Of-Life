@@ -1,7 +1,10 @@
-﻿<Window x:Class="Gui.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
+﻿<Window 
+    x:Class="Gui.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Gui"
+    Title="MainWindow" Height="350" Width="525"
+    SizeToContent="WidthAndHeight">
     <DockPanel>
         <!-- A bit of info at the top that tells us the number of generations -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" TextBlock.FontFamily="Tahoma" TextBlock.FontSize="15">
@@ -25,21 +28,27 @@
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border x:Name="Cell" Background="White" Width="20" Height="20" BorderBrush="LightGray" BorderThickness="1"/>
+                            <DataTemplate DataType="{x:Type local:Cell}">
+                                <Border 
+                                    x:Name="m_cell" 
+                                    Background="White" 
+                                    Width="20" 
+                                    Height="20" 
+                                    BorderBrush="LightGray" 
+                                    BorderThickness="1"
+                                />
                                 <DataTemplate.Triggers>
-                                    <DataTrigger Binding="{Binding}" Value="True">
-                                        <Setter TargetName="Cell" Property="Background" Value="Black"/>
+                                    <DataTrigger Binding="{Binding Path=State}" Value="True">
+                                        <Setter TargetName="m_cell" Property="Background" Value="Black"/>
                                     </DataTrigger>
                                 </DataTemplate.Triggers>
+                                
+                                <!--<CheckBox DataContext="{Binding Path=State}" IsChecked="{Binding Mode=OneWay}"/>-->
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        
-        
     </DockPanel>
-    
 </Window>
