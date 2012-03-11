@@ -43,7 +43,7 @@
                                     </DataTrigger>
                                 </DataTemplate.Triggers>
                                 
-                                <!--<CheckBox DataContext="{Binding Path=State}" IsChecked="{Binding Mode=OneWay}"/>-->
+                                <!--<CheckBox IsChecked="{Binding Path=State}"/>-->
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

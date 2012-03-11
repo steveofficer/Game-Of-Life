@@ -29,7 +29,7 @@ namespace Gui
             InitializeComponent();
             DataContext = this;
             Population = InitialPopulation
-                .Glider()
+                .TenCellRow()
                 .Select(row => row.Select(cell => new Cell(cell)).ToList())
                 .ToList();
 
@@ -40,7 +40,7 @@ namespace Gui
 
         private void UpdatePopulation() {
             var population = Population.Select(row => row.Select(cell => cell.State));
-            var new_population = GameOfLife.Tick(population);
+            var new_population = GameOfLife.Tick(population, GameOfLife.GridType.Bound);
             m_gen_counter += 1;
             var all_source_cells = Population.SelectMany(row => row);
             using (var enumerator = all_source_cells.GetEnumerator()) {
